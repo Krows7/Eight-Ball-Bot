@@ -1,0 +1,18 @@
+$.abbr: {de}
+$.help_tab: {
+```*Eight Ball's Hilfe-Registerkarte*
+Nächste Befehle verfügbar:
+-help : Zeigt die Hilfe-Registerkarte an.
+-[jede Frage (oder nicht)] : Frage, auf die Sie eine Antwort brauchen.
+-clear : Löscht alle Nachrichten, die diesen Bot betreffen.
+-lang [abbr] :
+1. Keine abbr. - Zeigt eine Liste der verfügbaren Botsprachen an.
+2. Mit abbr. - Ändert die Bot-Sprache.```}
+$.yes: {Ja}
+$.no: {Nein}
+$.answer: {<@%s> %s%s, mit Wahrscheinlichkeit in %s%s}
+$.change_lang: {Die bot sprache wurde auf deutsch geändert.}
+$.no_lang_msg: {Entschuldigung, aber deine verfügbare Sprache ist auf unserem bot nicht verfügbar.}
+$.langs: {Verfügbare Sprachen: %s}
+$.clear_msg: {Der chat wurde gelöscht.}
+$.ban_msg: {Entschuldigung, aber du bist für einen bot gesperrt. Sie können keine Befehle verwenden.}

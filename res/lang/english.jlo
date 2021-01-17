@@ -1,0 +1,19 @@
+$.abbr: {en}
+$.help_tab: {
+```*Eight Ball's Help Tab*
+Next commands available: 
+
+-help : Shows help tab. 
+-[any question (or not)] : Question to which you need an answer. 
+-clear : Clears all messages concerning this bot. 
+-lang [abbr] : 
+1. No abbr. - Shows list of available bot languages. 
+2. With abbr. - Changes bot language.```}
+$.yes: {Yes}
+$.no: {No}
+$.answer: {<@%s> %s%s, with probability in %s%s}
+$.change_lang: {Bot language changed to english.}
+$.no_lang_msg: {Sorry, but your entered language not available on our bot.}
+$.langs: {Available languages: %s}
+$.clear_msg: {The chat has been cleared.}
+$.ban_msg: {<@%s> Sorry, but you're banned for this bot. You can't use any commands.}

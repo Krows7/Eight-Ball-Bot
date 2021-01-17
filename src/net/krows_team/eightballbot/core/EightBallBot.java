@@ -1,31 +1,35 @@
-package net.bot.core;
+package net.krows_team.eightballbot.core;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import net.core.ObjectTools;
-import net.core.SystemTools;
+import net.coretools.core.ObjectTools;
+import net.coretools.core.time.TimeConstants;
+import net.coretools.core.time.Timer;
 import net.discordbot.core.DiscordBot;
 import net.discordbot.core.DiscordBotLoader;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
-import net.jlp.core.Language;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.jlp.core.JLPack;
 
 /**
  * 
  * The EightBallBot class is Java Discord bot for using on servers.
  * 
+ * @since 1.0.0
+ * 
  * @author Krows
  *
  */
-public class EightBallBot extends DiscordBot {
+public class EightBallBot extends DiscordBot implements TimeConstants {
 
 /**
  * 
@@ -74,11 +78,7 @@ public class EightBallBot extends DiscordBot {
 		super(token);
 	}
 	
-/**
- * 
- * This method adds listeners which bot will handle.
- * 
- */
+	@Override
 	protected void addListeners() {
 
 		api.addEventListener(new ListenerAdapter() {
@@ -89,111 +89,196 @@ public class EightBallBot extends DiscordBot {
 				if(!checkForSelf(event.getAuthor())) {
 					
 					if(checkForCommand(event.getMessage().getContentDisplay())) {
+							
+						if(!checkForBanned(event.getAuthor().getId())) {
+					
+							respondCommand(event);
+						} else {
 						
-						respondCommand(event);
-					}
+							event.getChannel().sendMessage(String.format(getText("ban_msg"), event.getAuthor().getId())).queue();
+						}
+					} 
 				}
 			}
 		});
 	}
 	
-/**
- * 
- * This method responds to message requests from listeners.
- * 
- * @param event Message events from listeners.
- * 
- */
+	@Override
 	protected void respondCommand(MessageReceivedEvent event) {
 		
-		MessageChannel channel = event.getChannel();
+		TextChannel channel = event.getTextChannel();
 		
 		try(Scanner scanner = new Scanner(event.getMessage().getContentDisplay())) {
 			
-			String message0 = scanner.next();
+			String message = scanner.next();
 
-			switch(message0) {
+			switch(message) {
 			
 			case CLEAR_COMMAND :
 				
-				for(Message message : channel.getIterableHistory()) {
-					
-					if(checkForCommand(message.getContentDisplay()) || checkForSelf(message.getAuthor())) message.delete().queue();
-				}
-				
-				return;
-				
-			case HELP_COMMAND :
-				
-				channel.sendMessage(getText("help_tab")).queue();
+				clearCommand(event, channel);
 				
 				break;
+			
+			case HELP_COMMAND :
 				
+				helpCommand(event, channel);
+				
+				break;
+			
 			case LANGUAGE_COMMAND :
 				
-				if(scanner.hasNext()) {
-					
-					String message = "";
-					
-					Map<String, String> saveMap = languageDataMap;
-					
-					String abbr = scanner.next();
-					
-					if((languageDataMap = DiscordBotLoader.loadLanguageMap(abbr)) == null) {
-						
-						languageDataMap = saveMap;
-						
-						message = getText("no_lang_msg");
-					} else {
-						DiscordBotLoader.changePreferenceLanguage(abbr);
-						
-						message = getText("change_lang");
-					}						
-					
-					channel.sendMessage(message).queue();
-				} else {
-					
-					channel.sendMessage(SystemTools.format(getText("langs"), Language.getLanguages())).queue();
-				}
+				languageCommand(event, scanner, channel);
 				
 				break;
 			
 			default :
 
-				if(message0.startsWith(SECOND_COMMAND_PREFIX)) {
+				if(message.startsWith(SECOND_COMMAND_PREFIX)) {
 					
-					List<Member> memberList = new CopyOnWriteArrayList<>(event.getGuild().getMembers());
-					
-					for(Member member : memberList) {
-						
-						if(member.getOnlineStatus().equals(OnlineStatus.OFFLINE) || member.getUser().isBot()) memberList.remove(member);
-					}
-					
-					memberList.remove(event.getGuild().getMember(api.getSelfUser()));
-					
-					channel.sendMessage(SystemTools.format("<@%s>,	<@%s>", event.getAuthor().getId(), ObjectTools.random(memberList.toArray(new Member[0])).getUser().getId())).queue();
+					rollCommand(event, channel);
 					
 					break;
 				}
 				
-				String answer = ObjectTools.random(getText("no"), getText("yes"));
-				
-				int probability = new Random().nextInt(100);
-				
-				if(answer.equals(getText("no")) && probability < 40) {
-					
-					answer = getText("yes");
-					
-					probability = 100 - probability;
-				}
-				
-				channel.sendMessage(SystemTools.format(getText("answer"), event.getAuthor().getId(), FIRST_COMMAND_PREFIX, answer, probability, "%")).queue();
+				answerCommand(event, channel);
 				
 				break;
 			}
 		}
 	}
 
+/**
+ * 
+ * Clears all messages from specified {@link TextChannel} concering this bot.
+ * 
+ * @param event Event concering message receiving.
+ * @param channel Source channel.
+ * 
+ */
+	private void clearCommand(MessageReceivedEvent event, TextChannel channel) {
+		
+		List<Message> historyList = channel.getIterableHistory().cache(true).complete();
+		List<Message> iterableList = new LinkedList<>();
+		
+		for(Message message : historyList) {
+			
+			if(checkForCommand(message.getContentDisplay()) || checkForSelf(message.getAuthor())) iterableList.add(message);
+		}
+		
+		channel.deleteMessages(iterableList).complete();
+		
+		Message clearMessage = channel.sendMessage(getText("clear_msg")).complete();
+		
+		channel.sendMessage(clearMessage);
+		
+		new Timer(5 * SECOND_TO_MILLISECOND, () -> {
+			
+			clearMessage.delete().queue();
+		}).start();
+		
+		historyList = null;
+		
+		iterableList = null;
+	}
+	
+/**
+ * 
+ * Sends message in to specified {@link TextChannel} with "help_tab" data.
+ * 
+ * @param event Event concering message receiving.
+ * @param channel Source channel.
+ * 
+ */
+	private void helpCommand(MessageReceivedEvent event,  TextChannel channel) {
+		
+		channel.sendMessage(getText("help_tab")).queue();
+	}
+	
+/**
+ * 
+ * Sends message in to specified {@link TextChannel} with data about containing languages in core {@link JLPack} object of the bot.
+ * 
+ * @param event Event concering message receiving.
+ * @param scanner Source message {@link Scanner}.
+ * @param channel Source channel.
+ * 
+ */
+	private void languageCommand(MessageReceivedEvent event, Scanner scanner, TextChannel channel) {
+		
+		if(scanner.hasNext()) {
+			
+			String message = "";
+			
+			Map<String, String> saveMap = languageDataMap;
+			
+			String abbr = scanner.next();
+			
+			if((languageDataMap = DiscordBotLoader.loadLanguageMap(abbr)) == null) {
+				
+				languageDataMap = saveMap;
+				
+				message = getText("no_lang_msg");
+			} else {
+				DiscordBotLoader.changePreferenceLanguage(abbr);
+				
+				message = getText("change_lang");
+			}						
+			
+			channel.sendMessage(message).queue();
+		} else {
+			
+			channel.sendMessage(String.format(getText("langs"), languagePack.getLanguages())).queue();
+		}
+	}
+	
+/**
+ * 
+ * Sends message in to specified {@link TextChannel} with random answer: "yes" or "no" with random percentage.
+ * 
+ * @param event Event concering message receiving.
+ * @param channel Source channel.
+ * 
+ */
+	private void answerCommand(MessageReceivedEvent event, TextChannel channel) {
+		
+		String answer = ObjectTools.random(getText("no"), getText("yes"));
+		
+		int probability = new Random().nextInt(100);
+		
+		if(answer.equals(getText("no")) && probability < 50) {
+			
+			answer = getText("yes");
+			
+			probability = 100 - probability;
+		}
+		
+		channel.sendMessage(String.format(getText("answer"), event.getAuthor().getId(), FIRST_COMMAND_PREFIX, answer, probability, "%")).queue();
+	}
+	
+/**
+ * 
+ * Sends message in to specified {@link TextChannel} with random user from current channel(it can't be offline users or bots).
+ * 
+ * @param event Event concering message receiving.
+ * @param channel Source channel.
+ * 
+ */
+	private void rollCommand(MessageReceivedEvent event, TextChannel channel) {
+		
+		List<Member> memberList = new CopyOnWriteArrayList<>(event.getGuild().getMembers());
+		
+		for(Member member : memberList) {
+			
+			if(member.getOnlineStatus().equals(OnlineStatus.OFFLINE) || member.getUser().isBot()) memberList.remove(member);
+		}
+		
+		memberList.remove(event.getGuild().getMember(api.getSelfUser()));
+		
+		channel.sendMessage(String.format("<@%s>,	<@%s>", event.getAuthor().getId(), ObjectTools.random(memberList.toArray(new Member[0])).getUser().getId())).queue();
+	}
+	
+	@Override
 	protected boolean checkForCommand(String message) {
 
 		return message.startsWith(FIRST_COMMAND_PREFIX) || message.startsWith(SECOND_COMMAND_PREFIX);
@@ -201,7 +286,7 @@ public class EightBallBot extends DiscordBot {
 
 /**
  * 
- * This method reutrns value of key from current language map which preloaded before the bot.
+ * Reutrns value of key from current language map which preloaded before the bot.
  * 
  * @param prefix String key to find data value.
  * 

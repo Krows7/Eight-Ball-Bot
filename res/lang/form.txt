@@ -1,0 +1,10 @@
+$.abbr: {}
+$.help_tab: {}
+$.yes: {}
+$.no: {}
+$.answer: {}
+$.change_lang: {}
+$.no_lang_msg: {}
+$.langs: {}
+$.clear_msg: {}
+$.ban_msg: {}

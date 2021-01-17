@@ -1,17 +1,19 @@
-package net.bot.core;
+package net.krows_team.eightballbot.core;
 
-import net.bot.jlp.EightBallBotLanguagePreloader;
-import net.core.Launcher;
+import net.coretools.core.Launcher;
 import net.discordbot.core.DiscordBotLauncher;
+import net.krows_team.eightballbot.jlp.EightBallBotLanguagePreloader;
 
 /**
  * 
  * The EightBallBotLauncher class is used for launching and working with Discord "Eight Ball Bot" bot.
  * 
- * @see Launcher
+ * @since 1.0.0
  * 
  * @author Krows
  *
+ * @see Launcher
+ * 
  */
 public class EightBallBotLauncher extends DiscordBotLauncher {
 
@@ -21,11 +23,14 @@ public class EightBallBotLauncher extends DiscordBotLauncher {
  * 
  * @param args Arguments for current launcher. Available next arguments: 
  * <blockquote>[String] token.</blockquote>
+ * <blockquote>[String] "-overwrite" localization file overwriting.</blockquote>
  * 
  */
 	public EightBallBotLauncher(String... args) {
 		
 		super(args);
+		
+		if(args.length > 1 && args[1].equals("-overwrite")) EightBallBotLanguagePreloader.preload();
 		
 		bot = new EightBallBot(token);
 	}
@@ -34,7 +39,11 @@ public class EightBallBotLauncher extends DiscordBotLauncher {
 	public void launch() {
 		
 		super.launch();
-		
-		EightBallBotLanguagePreloader.preload();
+	}
+	
+	public static void main(String[] args) {
+
+		Launcher launcher = new EightBallBotLauncher(args);
+		launcher.launch();
 	}
 }

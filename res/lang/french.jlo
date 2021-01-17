@@ -1,0 +1,18 @@
+$.abbr: {fr}
+$.help_tab: {
+```*Eight Ball's Onglet Aide*
+Prochaines commandes disponibles:
+-help : Affiche l'onglet d'aide.
+-[n'importe quelle question (ou non)] : Question à laquelle vous avez besoin d'une réponse.
+-clear : Effacer tous les messages à propos de ce bot.
+-lang [abbr.] :
+1. Pas d'abbr. - Afficher la liste des langues de bot disponibles.
+2. Avec abbr. - Changer la langue du bot.```}
+$.yes: {Oui}
+$.no: {Non}
+$.answer: {<@%s> %s%s, avec probabilité dans %s%s}
+$.change_lang: {La langue de bot a changé en français.}
+$.no_lang_msg: {Désolé, mais votre langue dactylographiée n'est pas disponible sur notre bot.}
+$.langs: {Langues disponibles: %s}
+$.clear_msg: {La discuter a été nettoyé.}
+$.ban_msg: {Désolé, mais vous êtes banni pour un bot. Vous ne pouvez pas utiliser de commandes.}
